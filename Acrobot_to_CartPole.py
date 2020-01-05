@@ -6,8 +6,9 @@ from ModifiedTensorBoard import ModifiedTensorBoard
 from datetime import datetime
 import timeit
 
-game = 'Acrobot-v1'
+game = 'CartPole-v1'
 env = gym.make(game)
+game_from = 'Acrobot-v1'
 env._max_episode_steps = 10000
 env.seed(1)
 np.random.seed(1)
@@ -23,7 +24,7 @@ def get_rewards(game):
         return -100, -500, 10001
 
 
-reward_t, average_rewards,max_steps = get_rewards(game)
+reward_t, average_rewards, max_steps = get_rewards(game)
 max_episodes = 5000
 discount_factor = 0.99
 lr_policy_network = 0.001
@@ -32,6 +33,7 @@ lr_decay = 0.999
 policy_num_n = 12
 value_num_n = 20
 kernel_initializer = tf.contrib.layers.xavier_initializer(seed=0)
+
 
 def action_by_game(game, actions_distribution):
     if game == 'CartPole-v1':
@@ -63,7 +65,6 @@ def create_onehot_by_game(game, action_size, action):
     if game == "MountainCarContinuous-v0":
         action_one_hot[0] = 1
     return action_one_hot
-
 
 
 def print_tests_in_tensorboard(path_for_file_or_name_of_file=None, read_from_file=False, data_holder=None):
@@ -101,7 +102,7 @@ class PolicyActorNetwork:
             self.W2 = tf.get_variable("W2_" + game, [policy_num_n, policy_num_n], initializer=kernel_initializer)
             self.b2 = tf.get_variable("b2_" + game, [policy_num_n], initializer=tf.zeros_initializer())
             self.W3 = tf.get_variable("W3_" + game, [policy_num_n, self.action_size], initializer=kernel_initializer)
-            self.b3 = tf.get_variable("b3_"+game, [self.action_size], initializer=tf.zeros_initializer())
+            self.b3 = tf.get_variable("b3_" + game, [self.action_size], initializer=tf.zeros_initializer())
 
             self.Z1 = tf.add(tf.matmul(self.state, self.W1), self.b1)
             self.A1 = tf.nn.relu(self.Z1)
@@ -124,12 +125,12 @@ class ValueCriticNetwork:
         with tf.variable_scope(name):
             self.state = tf.placeholder(tf.float32, [None, self.state_size], "state")
             self.R_t = tf.placeholder(dtype=tf.float32, name="total_rewards")
-            self.W1 = tf.get_variable("W1_"+game, [self.state_size, value_num_n],initializer=kernel_initializer)
-            self.b1 = tf.get_variable("b1_"+game, [value_num_n], initializer=tf.zeros_initializer())
-            self.W2 = tf.get_variable("W2_"+game, [value_num_n, value_num_n], initializer=kernel_initializer)
-            self.b2 = tf.get_variable("b2_"+game, [value_num_n], initializer=tf.zeros_initializer())
-            self.W3 = tf.get_variable("W3_"+game, [value_num_n, 1], initializer=kernel_initializer)
-            self.b3 = tf.get_variable("b3_"+game, [1], initializer=tf.zeros_initializer())
+            self.W1 = tf.get_variable("W1_" + game, [self.state_size, value_num_n], initializer=kernel_initializer)
+            self.b1 = tf.get_variable("b1_" + game, [value_num_n], initializer=tf.zeros_initializer())
+            self.W2 = tf.get_variable("W2_" + game, [value_num_n, value_num_n], initializer=kernel_initializer)
+            self.b2 = tf.get_variable("b2_" + game, [value_num_n], initializer=tf.zeros_initializer())
+            self.W3 = tf.get_variable("W3_" + game, [value_num_n, 1], initializer=kernel_initializer)
+            self.b3 = tf.get_variable("b3_" + game, [1], initializer=tf.zeros_initializer())
 
             self.Z1 = tf.add(tf.matmul(self.state, self.W1), self.b1)
             self.A1 = tf.nn.relu(self.Z1)
@@ -153,6 +154,24 @@ data_holder = []
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver({
+        "policy_network/W1_{}".format(game_from): Policy_Network.W1,
+        "policy_network/b1_{}".format(game_from): Policy_Network.b1,
+        "policy_network/W2_{}".format(game_from): Policy_Network.W2,
+        "policy_network/b2_{}".format(game_from): Policy_Network.b2,
+        "policy_network/W3_{}".format(game_from): Policy_Network.W3,
+        "policy_network/b3_{}".format(game_from): Policy_Network.b3,
+        "value_network/W1_{}".format(game_from): Value_Network.W1,
+        "value_network/b1_{}".format(game_from): Value_Network.b1,
+        "value_network/W2_{}".format(game_from): Value_Network.W2,
+        "value_network/b2_{}" .format(game_from): Value_Network.b2,
+        "value_network/W3_{}".format(game_from): Value_Network.W3,
+        "value_network/b3_{}".format(game_from): Value_Network.b3,
+    })
+    saver.restore(sess, "C:/Users\Administrator/PycharmProjects/RL_ASS3/models/Acrobot-v1.ckpt")
+
+
+
     solved = False
     transition = collections.namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
     episode_rewards = np.zeros(max_episodes)
@@ -176,7 +195,7 @@ with tf.Session() as sess:
             if render:
                 env.render()
 
-            action_one_hot = create_onehot_by_game(game,action_size,action)
+            action_one_hot = create_onehot_by_game(game, action_size, action)
             episode_transitions.append(
                 transition(state=state, action=action_one_hot, reward=reward, next_state=next_state, done=done))
             episode_rewards[episode] += reward
@@ -190,7 +209,8 @@ with tf.Session() as sess:
 
             lr_policy_network = lr_policy_network * lr_decay ** episode if lr_policy_network > 0.0001 else 0.0001
 
-            feed_dict_pol = {Policy_Network.state: state, Policy_Network.R_t: td_error * I, Policy_Network.action: action_one_hot,
+            feed_dict_pol = {Policy_Network.state: state, Policy_Network.R_t: td_error * I,
+                             Policy_Network.action: action_one_hot,
                              Policy_Network.learning_rate: lr_policy_network}
             _, loss = sess.run([Policy_Network.optimizer, Policy_Network.loss], feed_dict_pol)
 
@@ -208,11 +228,9 @@ with tf.Session() as sess:
                     print_tests_in_tensorboard(
                         path_for_file_or_name_of_file="{}_{}".format(game, episode),
                         data_holder=data_holder)
+
                     solved = True
 
-                    path_to_save = saver.save(sess,"./models/{}.ckpt".format(game))
-                    print("Model saved in {}".format(path_to_save))
-                    
                     print('Running Time: ', timeit.default_timer() - start)
 
                 break

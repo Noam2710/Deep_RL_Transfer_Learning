@@ -179,15 +179,11 @@ with tf.Session() as sess:
                     print_tests_in_tensorboard(
                         path_for_file_or_name_of_file="{}_{}".format(game, episode),
                         data_holder=data_holder)
-                    print(' Solved at episode: ' + str(episode))
                     solved = True
 
-                    save_path = saver.save(sess,
-                                           "./models/{}.ckpt".format(game)
-                                           )
-                    print("Model saved in path: %s" % save_path)
+                    path_to_save = saver.save(sess,"./models/{}.ckpt".format(game))
+                    print("Model saved in {}".format(path_to_save))
 
-                    solved = True
                     print('Running Time: ', timeit.default_timer() - start)
 
                 break
