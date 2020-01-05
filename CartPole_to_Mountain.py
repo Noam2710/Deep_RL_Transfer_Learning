@@ -6,8 +6,9 @@ from ModifiedTensorBoard import ModifiedTensorBoard
 from datetime import datetime
 import timeit
 
-game = 'CartPole-v1'
-env = gym.make('MountainCarContinuous-v0')
+game_from = 'CartPole-v1'
+game = 'MountainCarContinuous-v0'
+env = gym.make(game)
 env._max_episode_steps = 7000
 env.seed(1)
 np.random.seed(1)
@@ -117,20 +118,20 @@ data_holder = []
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver({
-        'policy_network/W1_1__C': Policy_Network.W1,
-        'policy_network/b1_1__C': Policy_Network.b1,
-        'policy_network/W2_1__C': Policy_Network.W2,
-        'policy_network/b2_1__C': Policy_Network.b2,
-        'policy_network/W3_1__C': Policy_Network.W3,
-        'policy_network/b3_1__C': Policy_Network.b3,
-        'value_network/W1_1_C': Value_Network.W1,
-        'value_network/b1_1_C': Value_Network.b1,
-        'value_network/W2_1_C': Value_Network.W2,
-        'value_network/b2_1_C': Value_Network.b2,
-        'value_network/W3_1_C': Value_Network.W3,
-        'value_network/b3_1_C': Value_Network.b3,
+        "policy_network/W1_{}".format(game_from): Policy_Network.W1,
+        "policy_network/b1_{}".format(game_from): Policy_Network.b1,
+        "policy_network/W2_{}".format(game_from): Policy_Network.W2,
+        "policy_network/b2_{}".format(game_from): Policy_Network.b2,
+        "policy_network/W3_{}".format(game_from): Policy_Network.W3,
+        "policy_network/b3_{}".format(game_from): Policy_Network.b3,
+        "value_network/W1_{}".format(game_from): Value_Network.W1,
+        "value_network/b1_{}".format(game_from): Value_Network.b1,
+        "value_network/W2_{}".format(game_from): Value_Network.W2,
+        "value_network/b2_{}".format(game_from): Value_Network.b2,
+        "value_network/W3_{}".format(game_from): Value_Network.W3,
+        "value_network/b3_{}".format(game_from): Value_Network.b3,
     })
-    saver.restore(sess, "./models/cartpole.ckpt")
+    saver.restore(sess, "./models/CartPole-v1.ckpt")
     solved = False
     transition = collections.namedtuple("Transition", ["state", "action", "reward", "next_state", "done"])
     episode_rewards = np.zeros(max_episodes)
