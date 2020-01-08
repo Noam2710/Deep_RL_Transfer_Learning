@@ -94,8 +94,8 @@ class PolicyActorNetwork:
             self.output_2 = tf.add(tf.matmul(self.A2_2, self.W3_2), self.b3_2)
             self.output_3 = tf.add(tf.matmul(self.A2_3, self.W3_3), self.b3_3)
 
-            self.output_final = tf.nn.softmax(tf.add(tf.add(self.output_1, self.output_2), self.output_3))
-            self.actions_distribution = tf.squeeze(self.output_final)
+            self.softmax_output = tf.nn.softmax(tf.add(tf.add(self.output_1, self.output_2), self.output_3))
+            self.actions_distribution = tf.squeeze(self.softmax_output)
             self.neg_log_prob = tf.nn.softmax_cross_entropy_with_logits_v2(logits=self.output_3, labels=self.action)
             self.loss = tf.reduce_mean(self.neg_log_prob * self.R_t)
             self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
