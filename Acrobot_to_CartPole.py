@@ -47,7 +47,11 @@ def action_by_game(game, actions_distribution):
 def create_onehot_by_game(game, action_size, action):
     action_one_hot = np.zeros(action_size)
     if game == 'CartPole-v1':
-        action_one_hot = [1 - action] * 5 + [action] * 5
+        action_one_hot = np.zeros(action_size)
+        start = 5 * action
+        end = 5 + start
+        for i in range(start, end):
+            action_one_hot[i] = 1
     if game == 'Acrobot-v1':
         if action == 0:
             action_one_hot[0] = 1

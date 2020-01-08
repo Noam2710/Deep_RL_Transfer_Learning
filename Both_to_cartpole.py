@@ -185,7 +185,12 @@ with tf.Session() as sess:
             if render:
                 env.render()
 
-            action_one_hot = [1 - action] * 5 + [action] * 5
+            action_one_hot = np.zeros(action_size)
+            start = 5 * action
+            end = 5 + start
+            for i in range(start, end):
+                action_one_hot[i] = 1
+
             episode_transitions.append(
                 Transition(state=state, action=action_one_hot, reward=reward, next_state=next_state, done=done))
             episode_rewards[episode] += reward
