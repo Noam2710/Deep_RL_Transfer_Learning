@@ -111,7 +111,6 @@ tf.reset_default_graph()
 
 Policy_Network = PolicyActorNetwork(state_size, action_size)
 Value_Network = ValueCriticNetwork(state_size, action_size, learning_rate=lr_value_network)
-# saver = tf.train.Saver()
 
 data_holder = []
 
@@ -139,7 +138,7 @@ with tf.Session() as sess:
     start = timeit.default_timer()
     for episode in range(max_episodes):
         state = env.reset()
-        state = np.append(state, [0] * (state_size - len(state)))
+        state = np.pad(state, [(0, (state_size - len(state)))], mode='constant')
         state = state.reshape([1, state_size])
         I = 1.0
         episode_transitions = []
@@ -151,10 +150,9 @@ with tf.Session() as sess:
             velocity = state[0][1]
             action += velocity
 
-
             next_state, reward, done, _ = env.step(action)
 
-            next_state = np.append(next_state, [0] * (state_size - len(next_state)))
+            next_state = np.pad(next_state, [(0, (state_size - len(next_state)))], mode='constant')
             next_state = next_state.reshape([1, state_size])
 
             if render:
@@ -167,12 +165,10 @@ with tf.Session() as sess:
                 transition(state=state, action=action_one_hot, reward=reward, next_state=next_state, done=done))
             episode_rewards[episode] += reward
 
-            value_curr = sess.run(Value_Network.value_estimate, {Value_Network.state: state})
-
             value_next = 0 if done else sess.run(Value_Network.value_estimate, {Value_Network.state: next_state})
 
             td_target = reward + discount_factor * value_next
-            td_error = td_target - value_curr
+            td_error = td_target - sess.run(Value_Network.value_estimate, {Value_Network.state: state})
 
             lr_policy_network = lr_policy_network * lr_decay ** episode if lr_policy_network > 0.0001 else 0.0001
 
