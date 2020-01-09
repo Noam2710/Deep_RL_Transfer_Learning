@@ -1,1 +1,1 @@
-# Deep_RL_Transfer_Learning
+# Solving RL challengers using fine-tuning and Progressive Networks.
