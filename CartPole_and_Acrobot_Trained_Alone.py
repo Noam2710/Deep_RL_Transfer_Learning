@@ -38,8 +38,6 @@ def action_by_game(game, actions_distribution):
         return np.random.choice([0] * 5 + [1] * 5, p=actions_distribution)
     if game == 'Acrobot-v1':
         return np.random.choice([0, 0, 0, 1, 1, 1, 1, 2, 2, 2], p=actions_distribution)
-    if game == "MountainCarContinuous-v0":
-        return np.random.choice([-0.7, -0.6, -0.5, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.7], 1, p=actions_distribution)
 
 
 def create_onehot_by_game(game, action_size, action):
@@ -65,8 +63,7 @@ def create_onehot_by_game(game, action_size, action):
             action_one_hot[7] = 1
             action_one_hot[8] = 1
             action_one_hot[9] = 1
-    if game == "MountainCarContinuous-v0":
-        action_one_hot[0] = 1
+
     return action_one_hot
 
 
@@ -178,7 +175,7 @@ with tf.Session() as sess:
             next_state = np.pad(next_state, [(0, (state_size - len(next_state)))], mode='constant')
             next_state = next_state.reshape([1, state_size])
 
-            if render:
+            if render and episode > 50:
                 env.render()
 
             action_one_hot = create_onehot_by_game(game,action_size,action)
